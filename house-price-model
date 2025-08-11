@@ -59,20 +59,100 @@ def location(coord):
     #         print(1)
 
     #to load pickle module
-    import pickle
-    loc_update = pickle.load(open("loc_update.pickle","rb"))
-    
-    #add data back to dataframe
-    loc = pd.DataFrame(loc_update)
-    loc.info()
+import pickle
+loc_update = pickle.load(open("loc_update.pickle","rb"))
 
-    #add new features to daatframe
-    for i in loc_update.keys():
-        #entire row
-        df[i] = loc_update[i] 
-    #shuffled data
-    df = df.sample(axis=0,frac=1)
-    df.head()
+#add data back to dataframe
+loc = pd.DataFrame(loc_update)
+loc.info()
+
+#add new features to daatframe
+for i in loc_update.keys():
+    #entire row
+    df[i] = loc_update[i] 
+#shuffled data
+df = df.sample(axis=0,frac=1)
+df.head()
+
+df.drop(labels=["Latitude","Longitude","Neighborhood"],axis=1)
+df.head()
+
+df.info()
+
+#use min or max value and repeat or use logistic regression
+#missing data is test data and other is traiing data
+
+#using Classification to fill missing categorical values
+missing_idx = []
+
+for i in range(df.shape[0]):
+    if df['Road'][i] is None:
+        missing_idx.append(i)
+
+#independent parameters
+missing_Road_X_train = np.array([ [df['MedInc'][i],df['AveRooms'][i],df['AveBedrms'][i]] for i in range(df.shape[0]) if i not in missing_idx])
+
+#Dependent parameter
+missing_Road_y_train = np.array([ df['Road'][i] for i in range(df.shape[0]) if i not in missing_idx])
+
+missing_Road_X_test = np.array([ [df['MedInc'][i],df['AveRooms'][i],df['AveBedrms'][i]] for i in range(df.shape[0]) if i in missing_idx])
+
+from sklearn.linear_model import SGDClassifier
+
+#model initialization
+model_1 = SGDClassifier()
+
+#Model Training
+model_1.fit(missing_Road_X_train,missing_Road_y_train)
+
+missing_Road_y_pred = model_1.predict(missing_Road_X_test)
+np.unique(missing_Road_y_pred)
+
+#add the model back to dataframe
+for n,i in enumerate(missing_idx):
+    df['Road'][i] = missing_Road_y_pred[n]
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['Road'] = le.fit_transform(df['Road'])  
+
+#Predicting County
+missing_idx = []
+
+for i in range(df.shape[0]):
+    if df['County'][i] is None:
+        missing_idx.append(i)
+
+#independent parameters
+missing_County_X_train = np.array([ [df['MedInc'][i],df['AveRooms'][i],df['AveBedrms'][i]] for i in range(df.shape[0]) if i not in missing_idx])
+
+#Dependent parameter
+missing_County_y_train = np.array([ df['County'][i] for i in range(df.shape[0]) if i not in missing_idx])
+
+missing_County_X_test = np.array([ [df['MedInc'][i],df['AveRooms'][i],df['AveBedrms'][i]] for i in range(df.shape[0]) if i in missing_idx])
+
+from sklearn.linear_model import SGDClassifier
+
+#model initialization
+model_1 = SGDClassifier()
+
+#Model Training
+model_1.fit(missing_County_X_train,missing_County_y_train)
+
+missing_County_y_pred = model_1.predict(missing_County_X_test)
+np.unique(missing_County_y_pred)
+
+#add the model back to dataframe
+for n,i in enumerate(missing_idx):
+    df['County'][i] = missing_County_y_pred[n]
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['County'] = le.fit_transform(df['County']) 
+
+df.info() 
+
+
 
 
 
