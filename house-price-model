@@ -66,6 +66,14 @@ def location(coord):
     loc = pd.DataFrame(loc_update)
     loc.info()
 
+    #add new features to daatframe
+    for i in loc_update.keys():
+        #entire row
+        df[i] = loc_update[i] 
+    #shuffled data
+    df = df.sample(axis=0,frac=1)
+    df.head()
+
 
 
 
