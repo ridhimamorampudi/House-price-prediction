@@ -1,0 +1,71 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+#Data set
+from sklearn.datasets import fetch_california_housing
+#get the data
+data = fetch_california_housing()
+
+print(data.DESCR)
+
+#data frame is 2d matrix#all independent data
+df = pd.DataFrame(data = data.data, columns = data.feature_names)
+#fetches first 5 rows
+df.head()
+
+#dependent data
+df['Target'] = data.target
+df.head()
+
+#exploratory data analysis EDA
+#when 2 features are correlated we cna discard it
+import sweetviz as sv
+
+report = sv.analyze(df)
+report.show_html("./report.html")
+
+#Data pre-processing
+from geopy.geocoders import Nomination
+geolocator = Nomination(user_agent = 'geoapiExercises')
+#user agent is an api so when you pass latitude and longitde ot goes into web and passes the reuslt
+
+#geolocator.reverse("37.88" + "," + "-122.23").raw['address'] without address shows all
+def location(coord):
+    Latitude = str(coord[0])
+    Longitude = str(coord[1])
+
+    location = geolocator.reverse(Latitude + "," + Longitude).raw['address'] #raw returns a dict
+    #if the values are missing replace by empty string
+
+    if location.get('Road') is None:
+        location['Road'] = None
+
+    if location.get('County') is None:
+        location['road'] = None  
+    loc_update['County'].append(location['County'])
+    loc_update['Road'].append(location['Road'])
+
+    loc_update = {"County":[],
+                  "Road":[],
+                  "Neighborhood":[]}
+    
+    # for i,cord in enumerate(df.ilock[:,6:-1].values):
+    #     location(cord)
+    #     #continuously reading our data and saving it on the go
+    #     pickle.dump(loc_update,open('loc_update.pickle','wb'))
+
+    #     if i%100==0:
+    #         print(1)
+
+    #to load pickle module
+    import pickle
+    loc_update = pickle.load(open("loc_update.pickle","rb"))
+    
+    #add data back to dataframe
+    loc = pd.DataFrame(loc_update)
+    loc.info()
+
+
+
+
